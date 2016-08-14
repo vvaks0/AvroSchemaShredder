@@ -83,7 +83,7 @@ public class AvroSchemaShredder {
 		server.start();
 		
 		/*
-		byte[] jsonData = Files.readAllBytes(Paths.get("/Users/vvaks/Documents/avroSchemaToAtlas1.json"));
+		byte[] jsonData = Files.readAllBytes(Paths.get("/Users/vvaks/Documents/avroSchemaToAtlas0.json"));
 		
 		ObjectMapper objectMapper = new ObjectMapper();
 		AvroSchema avroSchema = objectMapper.readValue(jsonData, AvroSchema.class);
@@ -272,12 +272,12 @@ public class AvroSchemaShredder {
 				returnList.add(returnPrimitive);
 			}
 		}
-		
 		return returnList;
 	}
 	public static void reportAtlasAvroObject(AvroType avroType) throws Exception{
 		final Referenceable atlasObject;
 		Object current  = avroType; 
+		List<String> entityList = new ArrayList<String>();
 		Referenceable referenceableId;
 			System.out.println(current);
 			if(current instanceof AvroPrimitive){
@@ -311,18 +311,18 @@ public class AvroSchemaShredder {
 				reportAtlasAvroCollection((List<?>)((AvroSchema)current).getFields());
 				
 				atlasObject = new Referenceable("avro_schema");
-				atlasObject.set("qualifiedName", ((AvroSchema)current).getName());
+				atlasObject.set("qualifiedName", atlasObject.getTypeName() + "." + ((AvroSchema)current).getName());
 				atlasObject.set("name", ((AvroSchema)current).getName());
 				atlasObject.set("namespace", ((AvroSchema)current).getNamespace() + " ");
 				atlasObject.set("type", ((AvroSchema)current).getType());
 				atlasObject.set("doc", ((AvroSchema)current).getDoc());
-				atlasObject.set("fields", reportAtlasReferenceableCollection((List<?>)((AvroSchema)current).getFields()));
+				atlasObject.set("fields", reportAtlasReferenceableCollection((List<?>)((AvroSchema)current).getFields(), (String)atlasObject.get("name")));
 				System.out.println(InstanceSerialization.toJson(atlasObject, true));
 				referenceableId = new Referenceable("avro_schema");
-				referenceableId = getEntityReference(atlasObject.getTypeName(), ((AvroSchema)current).getName().toString());
+				referenceableId = getEntityReference(atlasObject.getTypeName(), (String)atlasObject.get("qualifiedName"));
 				if(referenceableId == null){
-					referenceableId = new Referenceable("avro_schema");
-					referenceableId = atlasClient.getEntity(atlasClient.createEntity(atlasObject).get(0));
+					//referenceableId = new Referenceable("avro_schema");
+					//referenceableId = atlasClient.getEntity(atlasClient.createEntity(atlasObject).get(entityList.size()-1));
 					register(atlasClient, atlasObject);
 				}else{
 					System.out.println("********* " + ((AvroSchema)current).getName() + "  Already Exists ");
@@ -368,8 +368,9 @@ public class AvroSchemaShredder {
 		return returnList;
 	}
 	
-	public static List<?> reportAtlasReferenceableCollection(List<?> avroType) throws Exception{
+	public static List<?> reportAtlasReferenceableCollection(List<?> avroType, String parentName) {
 		List<Object> returnList = new ArrayList();
+		List<String> guids = new ArrayList<String>();
 		Iterator i = avroType.iterator();
 		Object current  = new AvroType();
 		Referenceable referenceable;
@@ -380,15 +381,31 @@ public class AvroSchemaShredder {
 			if(current instanceof AvroPrimitive){
 				System.out.println("*** type: " + ((AvroPrimitive)current).getType());
 				referenceable = new Referenceable("avro_primitive");
-				referenceable.set("qualifiedName", referenceable.getTypeName() + "." + ((AvroPrimitive)current).getType());
-				referenceable.set("name", referenceable.getTypeName() + "." + ((AvroPrimitive)current).getType());
+				referenceable.set("qualifiedName", parentName + "." + referenceable.getTypeName() + "." + ((AvroPrimitive)current).getType());
+				referenceable.set("name", ((AvroPrimitive)current).getType());
 				referenceable.set("type", ((AvroPrimitive)current).getType());
 				referenceableId = new Referenceable("avro_primitive");
-				referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("name"));
+				try {
+					referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("qualifiedName"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if(referenceableId == null){
 					referenceableId = new Referenceable("avro_primitive");
-					referenceableId = atlasClient.getEntity(atlasClient.createEntity(referenceable).get(0));
+					System.out.println(InstanceSerialization.toJson(referenceable, true));
+					try {
+						guids = atlasClient.createEntity(referenceable);
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
+					System.out.println("********************* Created " + guids.size() + " Entities: "  + guids.toString());
+					try {
+						referenceableId = atlasClient.getEntity(guids.get(guids.size()-1));
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
 					returnList.add(referenceableId.getId());
+					guids.clear();
 				}else{
 					returnList.add(referenceableId.getId());
 				}
@@ -405,17 +422,32 @@ public class AvroSchemaShredder {
 				System.out.println("*** type: " + ((AvroArray)current).getType());
 				//System.out.println("*** items: " +((AvroArray)current).getItems().toString());
 				referenceable = new Referenceable("avro_array");
-				referenceable.set("qualifiedName", referenceable.getTypeName() + "." + ((AvroArray)current).getType());
-				referenceable.set("name", referenceable.getTypeName() + "." + ((AvroArray)current).getType());
+				referenceable.set("qualifiedName", parentName + "." + referenceable.getTypeName() + "." + ((AvroArray)current).getType());
+				referenceable.set("name", ((AvroArray)current).getType());
 				referenceable.set("type", ((AvroArray)current).getType());
-				referenceable.set("items", reportAtlasReferenceableCollection((List<?>)((AvroArray)current).getItems()));
+				referenceable.set("items", reportAtlasReferenceableCollection((List<?>)((AvroArray)current).getItems(), (String)((AvroArray)current).getType()));
 				System.out.println(InstanceSerialization.toJson(referenceable, true));
 				referenceableId = new Referenceable("avro_array");
-				referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("name"));
+				try {
+					referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("qualifiedName"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if(referenceableId == null){
 					referenceableId = new Referenceable("avro_array");
-					referenceableId = atlasClient.getEntity(atlasClient.createEntity(referenceable).get(0));
+					try {
+						guids = atlasClient.createEntity(referenceable);
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
+					System.out.println("********************* Created " + guids.size() + " Entities: "  + guids.toString());
+					try {
+						referenceableId = atlasClient.getEntity(guids.get(guids.size()-1));
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
 					returnList.add(referenceableId);
+					guids.clear();
 				}else{
 					returnList.add(referenceableId);
 				}
@@ -424,11 +456,11 @@ public class AvroSchemaShredder {
 				System.out.println("*** aliases: " + ((AvroField)current).getAliases());
 				System.out.println("*** doc: " + ((AvroField)current).getDoc());
 				referenceable = new Referenceable("avro_field");
-				referenceable.set("qualifiedName", referenceable.getTypeName() + "." + ((AvroField)current).getName());
-				referenceable.set("name", referenceable.getTypeName() + "." + ((AvroField)current).getName());
+				referenceable.set("qualifiedName", parentName + "." + referenceable.getTypeName() + "." + ((AvroField)current).getName());
+				referenceable.set("name", ((AvroField)current).getName());
 				//referenceable.set("aliases", ((AvroField)current).getAliases());
-				referenceable.set("doc", ((AvroField)current).getDoc());
-				referenceable.set("type", reportAtlasReferenceableCollection((List<?>)((AvroField)current).getType()));
+				referenceable.set("doc", ((AvroField)current).getDoc() + " ");
+				referenceable.set("type", reportAtlasReferenceableCollection((List<?>)((AvroField)current).getType(), (String)referenceable.get("qualifiedName")));
 				returnList.add(referenceable);
 			}else if(current instanceof AvroSchema){
 				System.out.println("*** name: " + ((AvroSchema)current).getName());
@@ -437,18 +469,34 @@ public class AvroSchemaShredder {
 				System.out.println("*** doc: " + ((AvroSchema)current).getDoc());
 				referenceable = new Referenceable("avro_schema");
 				referenceable.set("qualifiedName", referenceable.getTypeName() + "." + ((AvroSchema)current).getName());
-				referenceable.set("name", referenceable.getTypeName() + "." + ((AvroSchema)current).getName());
+				referenceable.set("name", ((AvroSchema)current).getName());
 				referenceable.set("namespace", ((AvroSchema)current).getNamespace() + " ");
 				referenceable.set("type", ((AvroSchema)current).getType());
 				referenceable.set("doc", ((AvroSchema)current).getDoc());
-				referenceable.set("fields", reportAtlasReferenceableCollection((List<?>)((AvroSchema)current).getFields()));
+				referenceable.set("fields", reportAtlasReferenceableCollection((List<?>)((AvroSchema)current).getFields(), (String)referenceable.get("name")));
 				System.out.println(InstanceSerialization.toJson(referenceable, true));
 				referenceableId = new Referenceable("avro_schema");
-				referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("name"));
+				try {
+					referenceableId = getEntityReference(referenceable.getTypeName(), (String)referenceable.get("qualifiedName"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				if(referenceableId == null){
 					referenceableId = new Referenceable("avro_schema");
-					referenceableId = atlasClient.getEntity(atlasClient.createEntity(referenceable).get(0));
+					System.out.println(InstanceSerialization.toJson(referenceable, true));
+					try {
+						guids = atlasClient.createEntity(referenceable);
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
+					System.out.println("********************* Created " + guids.size() + " Entities: "  + guids.toString());
+					try {
+						referenceableId = atlasClient.getEntity(guids.get(guids.size()-1));
+					} catch (AtlasServiceException e) {
+						e.printStackTrace();
+					}
 					returnList.add(referenceableId.getId());
+					guids.clear();
 				}else{
 					returnList.add(referenceableId.getId());
 				}
@@ -472,44 +520,19 @@ public class AvroSchemaShredder {
 
         //final JSONArray guid = atlasClient.createEntity(entityJSON); //client vesion 0.6
         //final JSONObject guid = atlasClient.createEntity(entityJSON);
-        List<String> guid = (List<String>) atlasClient.createEntity(entityJSON);
+        List<String> guid = atlasClient.createEntity(referenceable);
         
-        System.out.println("created instance for type " + typeName + ", guid: " + guid); //client version 0.6
+        System.out.println("created instance for type " + typeName + ", guid: " + guid.get(guid.size()-1)); //client version 0.6
         //System.out.println("created instance for type " + typeName + ", guid: " + guid.getString("GUID"));
         
         //return new Referenceable(guid.getString(0), referenceable.getTypeName(), null); //client version 0.6
         //return new Referenceable(guid.getString("GUID"), referenceable.getTypeName(), null);
-        return new Referenceable(guid.get(0), referenceable.getTypeName(), null); //client version 0.7
+        return new Referenceable(guid.get(guid.size()-1), referenceable.getTypeName(), null); //client version 0.7
         //return null;
     }
-	
-	private Referenceable createSchema(AvroSchema event) {
-        final String flowFileUuid = event.toString();
-        
-        // TODO populate processor properties and determine real parent group, assuming root group for now
-        final Referenceable processor = new Referenceable("event");
-        //processor.set(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, flowFileUuid);
-        processor.set("name", flowFileUuid);
-        processor.set("event_key", "accountNumber");
-        processor.set("description", flowFileUuid);
-        return processor;
-    }
-	private static Referenceable getAvroSchemaReference(AvroSchema event) throws Exception {
-			final String typeName = "avro_schema";
-			final String id = "Application";
-			 
-			String dslQuery = String.format("%s where %s = \"%s\"", typeName, "name", id);
-			//System.out.println("********************* Atlas Version is: " + atlasVersion);
-			//Referenceable eventReferenceable = null;
-			
-			//if(atlasVersion >= 0.7)
-				return getEntityReferenceFromDSL6(atlasClient, typeName, dslQuery);
-			//else
-			//return null;
-	}
 	private static Referenceable getEntityReference(String typeName, String id) throws Exception {
 		
-		String dslQuery = String.format("%s where %s = \"%s\"", typeName, "name", id);
+		String dslQuery = String.format("%s where %s = \"%s\"", typeName, "qualifiedName", id);
 		//System.out.println("********************* Atlas Version is: " + atlasVersion);
 		//Referenceable eventReferenceable = null;
 		
