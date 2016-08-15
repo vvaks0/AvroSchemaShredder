@@ -71,7 +71,6 @@ public class AvroSchemaShredder {
 		
 		Properties props = System.getProperties();
         props.setProperty("atlas.conf", "/usr/hdp/current/atlas-server/conf/");
-        props.setProperty("atlas.conf", "/Users/vvaks/");
         atlasClient = new AtlasClient(atlasURL, basicAuth);
 		//atlasClient = new AtlasClient("http://sandbox.hortonworks.com:21000");
 		System.out.println("***************** atlas.conf has been set to: " + props.getProperty("atlas.conf"));
