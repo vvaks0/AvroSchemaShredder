@@ -89,7 +89,7 @@ public class AvroSchemaShredderService {
 			schema = atlasClient.getEntity(guid);
 			schemaJSON = InstanceSerialization.toJson(schema, true);
 			System.out.println(schemaJSON);
-			return Response.status(200).entity(schemaJSON).build();
+			return Response.status(200).entity(schema.get("avroNotation")).build();
 		} catch (AtlasServiceException e) {
 			e.printStackTrace();
 			return Response.status(400).entity("Could not find schema associated witht that GUID").build();
