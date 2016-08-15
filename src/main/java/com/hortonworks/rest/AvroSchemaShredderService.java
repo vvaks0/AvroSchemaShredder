@@ -16,6 +16,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -64,14 +65,36 @@ public class AvroSchemaShredderService {
 	public static final String DEFAULT_ADMIN_USER = "admin";
 	public static final String DEFAULT_ADMIN_PASS = "admin";
 	private static AtlasClient atlasClient;
+	private String atlasUrl = "http://sandbox.hortonworks.com:21000";
+	private String[] basicAuth = {DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASS};
+	private String[] atlasURL = {atlasUrl};
+	private Properties props = System.getProperties();
 	
-	@POST
-	@Produces(MediaType.TEXT_PLAIN)
-	@Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.WILDCARD})
-	@Path("testService")
-	public Response testService(String name){
-		System.out.print("Success " + name);
-		return Response.status(200).entity("success").build();
+	public AvroSchemaShredderService(){
+		props.setProperty("atlas.conf", "/usr/hdp/current/atlas-server/conf/");
+		props.setProperty("atlas.conf", "/Users/vvaks/");
+		atlasClient = new AtlasClient(atlasURL, basicAuth);
+		
+		System.out.println("***************** atlas.conf has been set to: " + props.getProperty("atlas.conf"));
+	}
+	
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getSchema/{guid}")
+	public Response getSchema(@PathParam("guid") String guid){
+		Referenceable schema = new Referenceable("avro_schema");
+		String schemaJSON;
+		System.out.println("Incoming GUID: " + guid);
+		try {
+			schema = atlasClient.getEntity(guid);
+			schemaJSON = InstanceSerialization.toJson(schema, true);
+			System.out.println(schemaJSON);
+			return Response.status(200).entity(schemaJSON).build();
+		} catch (AtlasServiceException e) {
+			e.printStackTrace();
+			return Response.status(400).entity("Could not find schema associated witht that GUID").build();
+		}
 	}
 	
 	@POST
@@ -88,15 +111,6 @@ public class AvroSchemaShredderService {
 		//Element element = new Element(techDestination.getTechnicianId(), techDestination);
 		//cache.put(element);
 		
-		String atlasUrl = "http://sandbox.hortonworks.com:21000";
-		String[] basicAuth = {DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASS};
-		String[] atlasURL = {atlasUrl};
-	
-		Properties props = System.getProperties();
-		props.setProperty("atlas.conf", "/usr/hdp/current/atlas-server/conf/");
-		atlasClient = new AtlasClient(atlasURL, basicAuth);
-		//atlasClient = new AtlasClient("http://sandbox.hortonworks.com:21000");
-		System.out.println("***************** atlas.conf has been set to: " + props.getProperty("atlas.conf"));
 		//System.out.println(atlasClient.getEntity("b33d63bb-7d77-4e5a-aa1b-145cfc69112e"));
 	
 		//byte[] jsonData = Files.readAllBytes(Paths.get("/Users/vvaks/Documents/avroSchemaToAtlas2.json"));
@@ -117,7 +131,7 @@ public class AvroSchemaShredderService {
 	
 		List<AvroField> avroFields = (List<AvroField>) handleList((ArrayList<?>)avroSchema.getFields(), "AvroField");
 		avroSchema.setFields(avroFields);
-		String avroSchemaClaimCheck = reportAtlasAvroObject(avroSchema);
+		String avroSchemaClaimCheck = reportAtlasAvroObject(avroSchema, jsonData);
 		//getAvroSchemaReference(avroSchema);
 		return Response.status(200).entity(avroSchemaClaimCheck).build();		 
 	}
@@ -290,7 +304,7 @@ public class AvroSchemaShredderService {
 		}	
 		return returnList;
 	}
-	public static String reportAtlasAvroObject(AvroType avroType) throws Exception{
+	public static String reportAtlasAvroObject(AvroType avroType, String jsonData) throws Exception{
 		final Referenceable atlasObject;
 		Object current  = avroType; 
 		List<String> entityList = new ArrayList<String>();
@@ -332,6 +346,7 @@ public class AvroSchemaShredderService {
 			atlasObject.set("namespace", ((AvroSchema)current).getNamespace() + " ");
 			atlasObject.set("type", ((AvroSchema)current).getType());
 			atlasObject.set("doc", ((AvroSchema)current).getDoc());
+			atlasObject.set("avroNotation", jsonData);
 			atlasObject.set("fields", reportAtlasReferenceableCollection((List<?>)((AvroSchema)current).getFields(), (String)atlasObject.get("name")));
 			System.out.println(InstanceSerialization.toJson(atlasObject, true));
 			referenceableId = new Referenceable("avro_schema");
