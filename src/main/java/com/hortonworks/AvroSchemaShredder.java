@@ -675,7 +675,7 @@ public class AvroSchemaShredder {
        	//Map<String,String> deviceDetailsMap = new HashMap<String, String>();
        	Map<String,String> deviceNetworkInfoMap = new HashMap<String, String>();
        	ResourceConfig config = new ResourceConfig();
-       	URI baseUri = UriBuilder.fromUri("http://localhost:8090").build();
+       	URI baseUri = UriBuilder.fromUri("http://sandbox.hortonworks.com:8090").build();
        	//deviceNetworkInfoMap = getNetworkInfo(deviceId, simType);
        	//baseUri = UriBuilder.fromUri("http://"+ deviceNetworkInfoMap.get("ipaddress") + "/server/").port(Integer.parseInt(deviceNetworkInfoMap.get("port"))).build();
        	//deviceDetailsMap = getSimulationDetails(simType, deviceId);
