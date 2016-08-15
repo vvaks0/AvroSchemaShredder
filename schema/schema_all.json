@@ -1,0 +1,397 @@
+
+  Primitive Field And Type
+  {
+    "string":"this is a simple string.",
+    "integer":10,
+    "long":21474836470,
+    "bigInteger":92233720368547758070,
+    "double":1.7976931348623157E308,
+    "boolean":true,
+    "null": null
+  }
+
+  Primitive Field And Type Schema 
+  {
+    "type":"record",
+    "name":"basic_primitive_type_check",
+    "fields":[
+      {"name":"bigInteger","type":["null","long"],"default":null},
+      {"name":"boolean","type":["null","boolean"],"default":null},
+      {"name":"double","type":["null","double"],"default":null},      
+      {"name":"integer","type":["null","int"],"default":null},
+      {"name":"long","type":["null","long"],"default":null},
+      {"name":"null","type":["null"],"default":null},
+      {"name":"string","type":["null","string"],"default":null}
+    ]
+  }
+
+  Primitive Array
+  {
+    "string": ["this is a simple string."],
+    "integer": [10],
+    "long": [21474836470],
+    "bigInteger": [92233720368547758070],
+    "double": [ 1.7976931348623157e+308],
+    "boolean": [true],
+    "null": ["abc",null]
+  }
+
+  Primitive Array Schema
+  {
+    "type":"record",
+    "name":"basic_primitive_array_type_check",
+    "fields":[
+      {"name":"bigInteger","type":["null",{"type":"array","items":["null","long"]}],"default":null},
+      {"name":"boolean","type":["null",{"type":"array","items":["null","boolean"]}],"default":null},
+      {"name":"double","type":["null",{"type":"array","items":["null","double"]}],"default":null},     
+      {"name":"integer","type":["null",{"type":"array","items":["null","int"]}],"default":null},
+      {"name":"long","type":["null",{"type":"array","items":["null","long"]}],"default":null},
+      {"name":"null","type":["null",{"type":"array","items":["null","string"]}],"default":null},
+      {"name":"string","type":["null",{"type":"array","items":["null","string"]}],"default":null}
+    ]
+  }
+
+  
+  Simple Single Type Array
+  {
+    "string": [
+    "this is a simple string."
+    ]
+  }
+
+  Simple Single Type Array Schema
+  {
+    "type":"record",
+    "name":"simple_single_type_json_array",
+    "fields":[      
+      {"name":"string","type":["null",{"type":"array","items":["null","string"]}],"default":null}
+    ]
+  }
+
+  Simple Array Array
+  {
+      "array_array": [
+      ["a", "b", "c"],
+      []
+    ]
+  }
+
+  Simple Array Array Schema
+  {
+    "type":"record",
+    "name":"simple_array_array",
+    "fields":[
+      {
+        "name":"array_array",
+        "type":[
+          "null",
+          {
+            "type":"array",
+            "items":[
+              "null",
+              {"type":"array", "items":["null","string"]}
+            ]
+          }
+        ],
+        "default":null
+      }
+    ]
+  }
+
+  
+
+  Simple Object Array JSON
+  {
+    "object_array": [
+      {
+        "key1":"str",
+        "key2":1
+      },
+      {
+        "key1":"str",
+        "key3":5.99
+      },
+      {},
+      null
+    ]
+  }
+
+  Simple Object Array Schema 
+  {
+    "type":"record",
+    "name":"simple_object_array",
+    "fields":[      
+      {
+        "name":"object_array",
+        "type":[
+          "null",
+          {
+            "type":"array",
+            "items":[
+              "null",
+              {
+                "type":"record",
+                "name":"object_array",
+                "fields":[
+                  {"name":"key1","type":["null","string"],"default":null},
+                  {"name":"key2","type":["null","int"],"default":null},
+                  {"name":"key3","type":["null","double"],"default":null}
+                ]
+              }
+            ]
+          }
+        ],
+        "default":null
+      }
+    ]
+  }
+
+  
+  
+  Glossary Json 
+  {
+    "glossary": {
+      "title": "example glossary",
+      "GlossDiv": {
+        "title": "S",
+        "GlossList": {
+          "GlossEntry": {
+            "ID": "SGML",
+            "SortAs": "SGML",
+            "GlossTerm": "Standard Generalized Markup Language",
+            "Acronym": "SGML",
+            "Abbrev": "ISO 8879:1986",
+            "GlossDef": {
+              "para": "A meta-markup language, used to create markup languages such as DocBook.",
+              "GlossSeeAlso": ["GML", "XML"]
+            },
+            "GlossSee": "markup"
+          }
+        }
+      }
+    }
+  }
+
+  Glossary Json Schema
+  {
+    "type":"record",
+    "name":"glossary_json_arrays",
+    "fields":[
+      {
+        "name":"glossary",
+        "type":[
+          "null",
+          {
+            "type":"record",
+            "name":"glossary",
+            "fields":[
+              {
+                "name":"GlossDiv",
+                "type":[
+                  "null",
+                  {
+                    "type":"record",
+                    "name":"GlossDiv",
+                    "fields":[
+                      {
+                        "name":"GlossList",
+                        "type":[
+                          "null",
+                          {
+                            "type":"record",
+                            "name":"GlossList",
+                            "fields":[
+                              {
+                                "name":"GlossEntry",
+                                "type":[
+                                  "null",
+                                  {
+                                    "type":"record",
+                                    "name":"GlossEntry",
+                                    "fields":[
+                                      {"name":"Abbrev","type":["null","string"],"default":null},
+                                      {"name":"Acronym","type":["null","string"],"default":null},
+                                      {
+                                        "name":"GlossDef",
+                                        "type":[
+                                          "null",
+                                          {
+                                            "type":"record",
+                                            "name":"GlossDef",
+                                            "fields":[
+                                              {"name":"GlossSeeAlso","type":["null",{"type":"array","items":["null","string"]}],"default":null},
+                                              {"name":"para","type":["null","string"],"default":null}
+                                            ]
+                                          }
+                                        ],
+                                        "default":null
+                                      },
+                                      {"name":"GlossSee","type":["null","string"],"default":null},
+                                      {"name":"GlossTerm","type":["null","string"],"default":null},
+                                      {"name":"ID","type":["null","string"],"default":null},
+                                      {"name":"SortAs","type":["null","string"],"default":null}
+                                    ]
+                                  }
+                                ],
+                                "default":null
+                              }
+                            ]
+                          }
+                        ],
+                        "default":null
+                      },
+                      {
+                        "name":"title",
+                        "type":["null","string"],
+                        "default":null
+                      }
+                    ]
+                  }
+                ],
+                "default":null
+              },
+              {
+                "name":"title",
+                "type":["null","string"],
+                "default":null
+              }
+            ]
+          }
+        ],
+        "default":null
+      },
+      {
+        "name":"header",
+        "type":[
+          "null",
+          {
+            "type":"record",
+            "name":"header",
+            "fields":[
+            {"name":"message_uuid","type":["null","string"],"default":null},{
+                "name":"time",
+                "type":["null","long"],
+                "default":null
+              }
+            ]
+          }
+        ],
+        "default":null
+      }
+    ]
+  }
+
+  Mixed Array Glossary JSON
+  {
+    "glossary": {
+      "title": "example glossary",
+      "GlossDiv": {
+        "title": "S",
+        "GlossList": {
+          "GlossEntry": {
+            "ID": "SGML",
+            "SortAs": "SGML",
+            "GlossTerm": "Standard Generalized Markup Language",
+            "Acronym": "SGML",
+            "Abbrev": "ISO 8879:1986",
+            "GlossDef": {
+              "para": "A meta-markup language, used to create markup languages such as DocBook.",
+              "GlossSeeAlso": ["GML", "XML", 100]
+            },
+            "GlossSee": "markup"
+          }
+        }
+      }
+    }
+  }
+
+  Mixed Array Glossary Schema 
+  {
+    "type":"record",
+    "name":"mixed_array_glossary_json_arrays",
+    "fields":[
+      {
+        "name":"glossary",
+        "type":[
+          "null",
+          {
+            "type":"record",
+            "name":"glossary",
+            "fields":[
+              {
+                "name":"GlossDiv",
+                "type":[
+                  "null",
+                  {
+                    "type":"record",
+                    "name":"GlossDiv",
+                    "fields":[
+                      {
+                        "name":"GlossList",
+                        "type":[
+                          "null",
+                          {
+                            "type":"record",
+                            "name":"GlossList",
+                            "fields":[
+                              {
+                                "name":"GlossEntry",
+                                "type":[
+                                  "null",
+                                  {
+                                    "type":"record",
+                                    "name":"GlossEntry",
+                                    "fields":[
+                                      {"name":"Abbrev","type":["null","string"],"default":null},
+                                      {"name":"Acronym","type":["null","string"],"default":null},
+                                      {
+                                        "name":"GlossDef",
+                                        "type":[
+                                          "null",
+                                          {
+                                            "type":"record",
+                                            "name":"GlossDef",
+                                            "fields":[
+                                              {
+                                                "name":"GlossSeeAlso",
+                                                "type":[
+                                                  "null",
+                                                  {"type":"array","items":["null","string","int"]}
+                                                ],
+                                                "default":null
+                                              },
+                                              {"name":"para","type":["null","string"],"default":null}
+                                            ]
+                                          }
+                                        ]
+                                        ,"default":null
+                                      },
+                                      {"name":"GlossSee","type":["null","string"],"default":null},
+                                      {"name":"GlossTerm","type":["null","string"],"default":null},
+                                      {"name":"ID","type":["null","string"],"default":null},
+                                      {"name":"SortAs","type":["null","string"],"default":null}
+                                    ]
+                                  }
+                                ]
+                                ,"default":null
+                              }
+                            ]
+                          }
+                        ],
+                        "default":null
+                      },
+                      {"name":"title","type":["null","string"],"default":null}
+                    ]
+                  }
+                ]
+                ,"default":null
+              },
+              {"name":"title","type":["null","string"],"default":null}
+            ]
+          }
+        ],
+        "default":null
+      }
+    ]
+  }
+
