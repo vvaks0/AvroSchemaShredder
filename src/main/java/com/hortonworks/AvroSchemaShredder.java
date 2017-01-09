@@ -82,9 +82,11 @@ public class AvroSchemaShredder {
 		//atlasClient = new AtlasClient("http://sandbox.hortonworks.com:21000");
 		System.out.println("***************** atlas.conf has been set to: " + props.getProperty("atlas.conf"));
 		//System.out.println(atlasClient.getEntity("b33d63bb-7d77-4e5a-aa1b-145cfc69112e"));
-		
-		System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
-		
+		if(atlasClient.getType("avro_schema") == null){
+			System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
+		}else{
+			System.out.println("Avro Schema types already exist...");
+		}
 		System.out.println("Starting Webservice...");
 		final HttpServer server = startServer(atlasUrl);
 		server.start();

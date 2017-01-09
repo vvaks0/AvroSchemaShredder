@@ -124,6 +124,7 @@ public class AvroSchemaShredderService {
 		//byte[] jsonData = Files.readAllBytes(Paths.get("/Users/vvaks/Documents/avroSchemaToAtlas2.json"));
 	
 		ObjectMapper objectMapper = new ObjectMapper();
+		System.out.println("Attempting to map schema metadata into Object...");
 		AvroSchema avroSchema = objectMapper.readValue(jsonData, AvroSchema.class);
 	
 		StringWriter stringAvroSchema = new StringWriter();
