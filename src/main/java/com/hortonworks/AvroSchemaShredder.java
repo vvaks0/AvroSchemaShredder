@@ -2,7 +2,9 @@ package com.hortonworks;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -65,7 +67,12 @@ public class AvroSchemaShredder {
 		//CacheManager.create();
 		//CacheManager.getInstance().addCache("TechnicianRouteRequest");
 		
-		String atlasUrl = "http://sandbox.hortonworks.com:21000";
+		String atlasUrl = "sandbox.hortonworks.com";
+		try {
+			atlasUrl = "http://"+InetAddress.getLocalHost().getHostName()+":21000";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}	
 		String[] basicAuth = {DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASS};
 		String[] atlasURL = {atlasUrl};
 		
@@ -79,7 +86,7 @@ public class AvroSchemaShredder {
 		System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
 		
 		System.out.println("Starting Webservice...");
-		final HttpServer server = startServer();
+		final HttpServer server = startServer(atlasUrl);
 		server.start();
 		
 		/*
@@ -671,16 +678,25 @@ public class AvroSchemaShredder {
 		return avroSchemaDataModelJSON;
 	}
 	
-	public static HttpServer startServer() {
+	public static HttpServer startServer(String atlasUrl) {
        	//Map<String,String> deviceDetailsMap = new HashMap<String, String>();
-       	Map<String,String> deviceNetworkInfoMap = new HashMap<String, String>();
+       	String hostName = "sandbox.hortonworks.com";
+		Map<String,String> deviceNetworkInfoMap = new HashMap<String, String>();
+		Map<String,String> configMap = new HashMap<String, String>();
        	ResourceConfig config = new ResourceConfig();
-       	URI baseUri = UriBuilder.fromUri("http://sandbox.hortonworks.com:8090").build();
+       	try {
+			hostName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+       	URI baseUri = UriBuilder.fromUri("http://" + hostName + ":8095").build();
        	//deviceNetworkInfoMap = getNetworkInfo(deviceId, simType);
        	//baseUri = UriBuilder.fromUri("http://"+ deviceNetworkInfoMap.get("ipaddress") + "/server/").port(Integer.parseInt(deviceNetworkInfoMap.get("port"))).build();
        	//deviceDetailsMap = getSimulationDetails(simType, deviceId);
    		//baseUri = UriBuilder.fromUri("http://" + deviceDetailsMap.get("ipaddress") + "/server/").port(Integer.parseInt(deviceDetailsMap.get("port"))).build();
+       	configMap.put("atlasUrl", atlasUrl);
        	config.packages("com.hortonworks.rest");
+       	config.setProperties(configMap);
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
    		return server;
     }

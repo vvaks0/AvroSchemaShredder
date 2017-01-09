@@ -2,7 +2,9 @@ package com.hortonworks.rest;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -72,6 +74,13 @@ public class AvroSchemaShredderService {
 	
 	public AvroSchemaShredderService(){
 		props.setProperty("atlas.conf", "/usr/hdp/current/atlas-server/conf/");
+		//atlasUrl = props.getProperty(key)
+		try {
+			this.atlasUrl = "http://"+InetAddress.getLocalHost().getHostName()+":21000";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		this.atlasURL[0] = this.atlasUrl;
 		atlasClient = new AtlasClient(atlasURL, basicAuth);
 		
 		System.out.println("***************** atlas.conf has been set to: " + props.getProperty("atlas.conf"));
