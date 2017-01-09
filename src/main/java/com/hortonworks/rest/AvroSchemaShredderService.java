@@ -126,8 +126,9 @@ public class AvroSchemaShredderService {
 		ObjectMapper objectMapper = new ObjectMapper();
 		System.out.println("Attempting to map schema metadata into Object...");
 		AvroSchema avroSchema = objectMapper.readValue(jsonData, AvroSchema.class);
-	
+		
 		StringWriter stringAvroSchema = new StringWriter();
+		System.out.println("Attempting to map schema metadata into Object...");
 		objectMapper.writeValue(stringAvroSchema, avroSchema);
 		System.out.println(stringAvroSchema);
 	
