@@ -45,6 +45,8 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -109,7 +111,7 @@ public class AvroSchemaShredderService {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.WILDCARD})
 	@Path("storeSchema")
-	public Response storeSchema(String jsonData) throws Exception {
+	public Response storeSchema(String jsonData) {
 		String result = "Data post: " + jsonData;
 		System.out.println(result);
 		//TechnicianDestination techDestination = (TechnicianDestination)convertJSONToPOJO(data);
@@ -133,7 +135,15 @@ public class AvroSchemaShredderService {
 		}
 		StringWriter stringAvroSchema = new StringWriter();
 		System.out.println("Attempting to map schema metadata into Object...");
-		objectMapper.writeValue(stringAvroSchema, avroSchema);
+		try {
+			objectMapper.writeValue(stringAvroSchema, avroSchema);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		System.out.println(stringAvroSchema);
 	
 		System.out.println("********** name: " + avroSchema.getName());
@@ -145,7 +155,12 @@ public class AvroSchemaShredderService {
 	
 		List<AvroField> avroFields = (List<AvroField>) handleList((ArrayList<?>)avroSchema.getFields(), "AvroField");
 		avroSchema.setFields(avroFields);
-		String avroSchemaClaimCheck = reportAtlasAvroObject(avroSchema, jsonData);
+		String avroSchemaClaimCheck = null;
+		try {
+			avroSchemaClaimCheck = reportAtlasAvroObject(avroSchema, jsonData);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		//getAvroSchemaReference(avroSchema);
 		return Response.status(200).entity(avroSchemaClaimCheck).build();		 
 	}
