@@ -173,6 +173,7 @@ public class AvroSchemaShredderService {
 		Object next;
 	
 		System.out.println("**************** Complex Type : " + nextMap.get("type"));
+		try{
 		if(mapType.equalsIgnoreCase("record")){
 			System.out.println("**************** name : " + nextMap.get("name"));
 			System.out.println("**************** namespace : " + nextMap.get("namespace"));
@@ -249,6 +250,9 @@ public class AvroSchemaShredderService {
 		System.out.println("**************** nested string : " + nextMap.get("type"));
 		fieldList = (ArrayList)nextMap.get("type");
 		handleList(fieldList, "none");
+	}
+	}catch(Exception e){
+		e.printStackTrace();
 	}
 	return null;
 	}
