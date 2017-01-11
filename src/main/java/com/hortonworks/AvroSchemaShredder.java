@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -88,6 +89,13 @@ public class AvroSchemaShredder {
 		}catch(AtlasServiceException ae){
 			System.out.println("Avro Schema model not found... Creating");
 			System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
+		}
+		try{
+			TypesDef kafkaType = atlasClient.getType("kafka_topic");
+			System.out.println("Found kafka_topic type...");
+			
+		}catch(AtlasServiceException ae){
+			System.out.println("kafka_topic type does not exist...");
 		}
 		System.out.println("Starting Webservice...");
 		final HttpServer server = startServer(atlasUrl);
@@ -644,6 +652,23 @@ public class AvroSchemaShredder {
 		  System.out.println("Created definition for " + typeName);
 	}
 	
+	private static void updateKafkaTopicType(){
+		TypesDef kafkaTypeDef;
+		try {
+			kafkaTypeDef = atlasClient.getType("kafka_topic");
+			HierarchicalTypeDefinition<ClassType> kafkaTypeClass = kafkaTypeDef.classTypesAsJavaList().get(0);
+			AttributeDefinition[] kafkaAttributes = kafkaTypeClass.attributeDefinitions;
+			AttributeDefinition[] updatedKafkaAttributes = Arrays.copyOf(kafkaAttributes, kafkaAttributes.length+1);
+			updatedKafkaAttributes[kafkaAttributes.length] = new AttributeDefinition("avro_schema", "array<avro_schema>", Multiplicity.OPTIONAL, false, null);
+			ImmutableSet<String> kafkaSuperTypes = kafkaTypeDef.classTypesAsJavaList().get(0).superTypes;
+			HierarchicalTypeDefinition<ClassType> updatedKafkaTypeClass = 
+			new HierarchicalTypeDefinition<ClassType>(ClassType.class, "kafka_topic", null, kafkaSuperTypes, updatedKafkaAttributes);
+			classTypeDefinitions.put("kafka_topic", updatedKafkaTypeClass);
+		} catch (AtlasServiceException e) {
+			e.printStackTrace();
+		}	
+	}
+	
 	private static void addClassTypeDefinition(String typeName, ImmutableSet<String> superTypes, AttributeDefinition[] attributeDefinitions) {
 		HierarchicalTypeDefinition<ClassType> definition =
                 new HierarchicalTypeDefinition<>(ClassType.class, typeName, null, superTypes, attributeDefinitions);
@@ -670,6 +695,7 @@ public class AvroSchemaShredder {
 		createAvroField();
 		createAvroArray();
 		createAvroPrimitive();
+		updateKafkaTopicType();
 		
 		typesDef = TypesUtil.getTypesDef(
 				getEnumTypeDefinitions(), 	//Enums 
