@@ -89,6 +89,8 @@ public class AvroSchemaShredder {
 		}catch(AtlasServiceException ae){
 			System.out.println("Avro Schema model not found... Creating");
 			System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
+			classTypeDefinitions.clear();
+			System.out.println("Created: " + atlasClient.updateType(updateKafkaTopicType()));
 		}
 		try{
 			TypesDef kafkaType = atlasClient.getType("kafka_topic");
@@ -652,7 +654,8 @@ public class AvroSchemaShredder {
 		  System.out.println("Created definition for " + typeName);
 	}
 	
-	private static void updateKafkaTopicType(){
+	private static String updateKafkaTopicType(){
+		String kafkaJSON;
 		TypesDef kafkaTypeDef;
 		try {
 			kafkaTypeDef = atlasClient.getType("kafka_topic");
@@ -666,7 +669,17 @@ public class AvroSchemaShredder {
 			classTypeDefinitions.put("kafka_topic", updatedKafkaTypeClass);
 		} catch (AtlasServiceException e) {
 			e.printStackTrace();
-		}	
+		}
+		kafkaTypeDef = TypesUtil.getTypesDef(
+				getEnumTypeDefinitions(), 	//Enums 
+				getStructTypeDefinitions(), //Struct 
+				getTraitTypeDefinitions(), 	//Traits 
+				ImmutableList.copyOf(classTypeDefinitions.values()));
+		
+		kafkaJSON = TypesSerialization.toJson(kafkaTypeDef);
+		System.out.println("Submitting Types Definition: " + kafkaJSON);
+		return kafkaJSON;
+		
 	}
 	
 	private static void addClassTypeDefinition(String typeName, ImmutableSet<String> superTypes, AttributeDefinition[] attributeDefinitions) {
@@ -695,7 +708,6 @@ public class AvroSchemaShredder {
 		createAvroField();
 		createAvroArray();
 		createAvroPrimitive();
-		updateKafkaTopicType();
 		
 		typesDef = TypesUtil.getTypesDef(
 				getEnumTypeDefinitions(), 	//Enums 
