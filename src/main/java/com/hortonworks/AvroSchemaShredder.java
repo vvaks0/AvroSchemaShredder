@@ -90,7 +90,7 @@ public class AvroSchemaShredder {
 			System.out.println("Avro Schema model not found... Creating");
 			System.out.println("Created: " + atlasClient.createType(generateAvroSchemaDataModel()));
 			classTypeDefinitions.clear();
-			System.out.println("Created: " + atlasClient.updateType(updateKafkaTopicType()));
+			System.out.println("Updated: " + atlasClient.updateType(updateKafkaTopicType()));
 		}
 		try{
 			TypesDef kafkaType = atlasClient.getType("kafka_topic");
